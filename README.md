@@ -22,6 +22,7 @@ generate(CollageOptions {
     height: 500,
     files: files,
     skip_bad_files: false,
+    workers: num_cpus::get(),
 });
 ```
 

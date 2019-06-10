@@ -54,6 +54,7 @@ struct CollageInfo {
     column_width: u32,
     column_height_average: f64,
     columns: Vec<Column>,
+    workers: usize,
 }
 
 struct Column {
@@ -69,6 +70,7 @@ where
     height: u32,
     files: T,
     skip_bad_files: bool,
+    workers: usize,
 }
 
 fn main() {
@@ -94,6 +96,12 @@ fn main() {
                 .help("Sets the final height of the collage.")
                 .takes_value(true)
                 .required(true),
+        )
+        .arg(
+            Arg::with_name("workers")
+                .long("workers")
+                .help("Number of workers for image processing. Defaults to number of CPUs.")
+                .takes_value(true),
         )
         // Ignore bad files
         .arg(
@@ -162,6 +170,7 @@ fn main() {
         height: value_t!(options.value_of("height"), u32).unwrap_or_else(|e| e.exit()),
         files: files,
         skip_bad_files: options.is_present("skip-bad-files"),
+        workers: value_t!(options.value_of("workers"), usize).unwrap_or(num_cpus::get()),
     });
 
     info!(
@@ -175,7 +184,8 @@ fn generate<I>(options: CollageOptions<I>)
 where
     I: IntoIterator<Item = Box<Path>>,
 {
-    let mut images: Vec<ImageInfo> = get_images(options.files, options.skip_bad_files);
+    let mut images: Vec<ImageInfo> =
+        get_images(options.files, options.skip_bad_files, options.workers);
 
     normalize_images(&mut images);
 
@@ -186,6 +196,7 @@ where
         column_width: 0,
         column_height_average: 0.,
         columns: vec![],
+        workers: options.workers,
     };
 
     add_columns(&mut collage_info, &mut images);
@@ -247,7 +258,7 @@ fn create_collage(mut collage_info: CollageInfo) {
     // The first column's offset should be 0.
     let mut x = 0;
 
-    let pool = ThreadPool::new(num_cpus::get());
+    let pool = ThreadPool::new(collage_info.workers);
     let (sender_base, receiver) = mpsc::channel();
 
     // Loop through columns and place their covers.
@@ -620,14 +631,14 @@ fn normalize_images(sizes: &mut Vec<ImageInfo>) {
     );
 }
 
-fn get_images<I>(files: I, skip_bad_files: bool) -> Vec<ImageInfo>
+fn get_images<I>(files: I, skip_bad_files: bool, workers: usize) -> Vec<ImageInfo>
 where
     I: IntoIterator<Item = Box<Path>>,
 {
     let files = files.into_iter();
     let mut sizes: Vec<ImageInfo> = vec![];
 
-    let pool = ThreadPool::new(num_cpus::get());
+    let pool = ThreadPool::new(workers);
     let (sender_base, receiver) = mpsc::channel();
     let mut file_count: u16 = 0;
     let mut succeeded_count: u16 = 0;
