@@ -3,6 +3,30 @@
 Generates a collage from a collection of images,
 which is a great way to visually represent tens or hundreds of images or photographs.
 
+## Library (Rust)
+
+```rust
+extern crate collage;
+
+use collage::{CollageOptions, generate};
+use std::env;
+
+let dir = env::current_dir().unwrap().join("images");
+let mut files: Vec<Box<Path>> = vec![];
+for dir in fs::read_dir(dir).expect("Directory doesn't seem to exist") {
+    files.push(dir.unwrap().path().into_boxed_path());
+}
+
+generate(CollageOptions {
+    width: 500,
+    height: 500,
+    files: files,
+    skip_bad_files: false,
+});
+```
+
+## Binary (CLI)
+
 ```
 USAGE:
     collage [FLAGS] --height <height> --width <width>
