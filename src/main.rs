@@ -1,20 +1,9 @@
-extern crate ansi_escapes;
-extern crate clap;
-extern crate colored;
-extern crate exitcode;
-extern crate image;
-extern crate indicatif;
-extern crate num_format;
-#[macro_use]
-extern crate log;
-
 use ansi_escapes::EraseLines;
 use clap::{crate_version, value_t, App, Arg};
 use colored::*;
 use image::{DynamicImage, FilterType, GenericImageView, ImageBuffer, ImageResult, Rgb};
 use indicatif::{ProgressBar, ProgressDrawTarget};
-use log::{Level, LevelFilter};
-use num_cpus;
+use log::{debug, error, info, log, Level, LevelFilter};
 use num_format::{Locale, ToFormattedString};
 use std::cmp::{max, min};
 use std::fs::File;
