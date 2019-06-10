@@ -335,7 +335,8 @@ fn create_collage(mut collage_info: CollageInfo) {
         "{}px removed from the shortest column with a height of {}px ({:.2}%).",
         (shortest_column as u64 - collage_info.height as u64).to_formatted_string(&Locale::en),
         shortest_column.to_formatted_string(&Locale::en),
-        (shortest_column as u64 - collage_info.height as u64) as f64 / shortest_column as f64 * 100.
+        (shortest_column as u64 - collage_info.height as u64) as f64 / shortest_column as f64
+            * 100.
     );
     info!(
         "{}px removed from the tallest column with a height of {}px ({:.2}%).",
