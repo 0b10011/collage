@@ -1,11 +1,11 @@
 use clap::{crate_version, value_t, App, Arg};
+use collage::{generate, CollageOptions};
 use log::{info, LevelFilter};
 use num_format::{Locale, ToFormattedString};
 use std::path::Path;
 use std::time::Instant;
 use std::vec::Vec;
 use std::{env, fs, u64};
-use collage::{generate, CollageOptions};
 
 fn main() {
     let now = Instant::now();

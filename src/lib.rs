@@ -1,5 +1,4 @@
 #![cfg_attr(feature = "external_doc", feature(external_doc))]
-
 // repeat this for all includes everywhere:
 #![cfg_attr(feature = "external_doc", doc(include = "../README.md"))]
 //!
@@ -18,13 +17,13 @@ use std::io::Read;
 use std::path::Path;
 use std::process;
 use std::sync::mpsc;
-use std::vec::Vec;
 use std::u64;
+use std::vec::Vec;
 use threadpool::ThreadPool;
 
 use std::error;
-use std::result;
 use std::fmt;
+use std::result;
 
 #[derive(Debug, Clone)]
 pub struct CollageError;
@@ -42,7 +41,7 @@ impl error::Error for CollageError {
     }
 }
 
-pub type CollageResult = result::Result<ImageBuffer::<Rgb<u8>, Vec<u8>>, CollageError>;
+pub type CollageResult = result::Result<ImageBuffer<Rgb<u8>, Vec<u8>>, CollageError>;
 
 type Result<T> = result::Result<T, CollageError>;
 
@@ -92,16 +91,15 @@ where
     pub workers: usize,
 }
 
-
-pub fn generate<I>(options: CollageOptions<I>)
--> CollageResult
+pub fn generate<I>(options: CollageOptions<I>) -> CollageResult
 where
     I: IntoIterator<Item = Box<Path>>,
 {
-    let mut images: Vec<ImageInfo> = match get_images(options.files, options.skip_bad_files, options.workers) {
-        Ok(images) => images,
-        Err(err) => return Err(err),
-    };
+    let mut images: Vec<ImageInfo> =
+        match get_images(options.files, options.skip_bad_files, options.workers) {
+            Ok(images) => images,
+            Err(err) => return Err(err),
+        };
 
     normalize_images(&mut images);
 
