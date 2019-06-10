@@ -1,4 +1,4 @@
-# Collage
+# Collage [![Build status](https://travis-ci.org/0b10011/collage.svg?branch=master)](https://travis-ci.org/0b10011/collage)
 
 Generates a collage from a collection of images,
 which is a great way to visually represent tens or hundreds of images or photographs.
