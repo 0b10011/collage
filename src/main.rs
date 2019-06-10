@@ -1,6 +1,3 @@
-#![cfg(feature = "nightly")]
-#![feature(external_doc)]
-
 use ansi_escapes::EraseLines;
 use clap::{crate_version, value_t, App, Arg};
 use colored::*;
@@ -734,7 +731,3 @@ fn get_image(path: &Path) -> ImageResult<DynamicImage> {
         .expect("File could not be read");
     image::load_from_memory(&buffer)
 }
-
-// Test code in README
-#[doc(include = "../README.md")]
-type _DoctestReadme = ();
