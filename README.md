@@ -6,8 +6,6 @@ which is a great way to visually represent tens or hundreds of images or photogr
 ## Library (Rust)
 
 ```rust
-extern crate collage;
-
 use collage::{CollageOptions, generate};
 use std::env;
 
@@ -17,7 +15,7 @@ for dir in fs::read_dir(dir).expect("Directory doesn't seem to exist") {
     files.push(dir.unwrap().path().into_boxed_path());
 }
 
-generate(CollageOptions {
+collage::generate(CollageOptions {
     width: 500,
     height: 500,
     files: files,
