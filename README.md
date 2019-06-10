@@ -6,16 +6,14 @@ which is a great way to visually represent tens or hundreds of images or photogr
 ## Library (Rust)
 
 ```rust
-use collage::{CollageOptions, generate};
-use std::env;
+use collage::{CollageOptions, CollageResult, generate};
+use std::{env, fs};
+use std::path::Path;
 
-let dir = env::current_dir().unwrap().join("images");
 let mut files: Vec<Box<Path>> = vec![];
-for dir in fs::read_dir(dir).expect("Directory doesn't seem to exist") {
-    files.push(dir.unwrap().path().into_boxed_path());
-}
+// Add files to vector here
 
-collage::generate(CollageOptions {
+let collage: CollageResult = collage::generate(CollageOptions {
     width: 500,
     height: 500,
     files: files,
@@ -26,7 +24,7 @@ collage::generate(CollageOptions {
 
 ## Binary (CLI)
 
-```
+```text
 USAGE:
     collage [FLAGS] --height <height> --width <width>
 

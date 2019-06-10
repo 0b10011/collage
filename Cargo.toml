@@ -17,3 +17,9 @@ threadpool = "*"
 colored = "*"
 indicatif = "*"
 num-format = "*"
+
+[features]
+external_doc = []
+
+[package.metadata.docs.rs]
+features = [ "external_doc" ]

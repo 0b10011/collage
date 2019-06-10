@@ -1,7 +1,16 @@
 language: rust
 before_script:
 - rustup component add rustfmt
+matrix:
+  include:
+    - rust: stable
+      env: EXTERNAL_DOC=false
+    - rust: beta
+      env: EXTERNAL_DOC=false
+    - rust: nightly
+      env: EXTERNAL_DOC=true
+  fast_finish: true
 script:
 - cargo fmt --all -- --check
 - cargo build
-- cargo test
+- if [ "$EXTERNAL_DOC" = "true" ]; then cargo test --features external_doc; else cargo test; fi
