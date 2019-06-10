@@ -1,5 +1,5 @@
 #![cfg_attr(feature = "external_doc", feature(external_doc))]
-// repeat this for all includes everywhere:
+// This tests the README to ensure code snippets work.
 #![cfg_attr(feature = "external_doc", doc(include = "../README.md"))]
 //!
 
