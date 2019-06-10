@@ -27,13 +27,13 @@ OPTIONS:
 2. Number of columns will be estimated from provided width and height, and the size of the images
 3. Images will be split into columns
 4. Images will be swapped between columns to get all of the columns to a similar height:
-  1. Each column will be measured.
-  2. If an image from the shortest and tallest columns can be swapped to get closer to the average height, do so and repeat these steps.
-  3. Otherwise, move on to the next step.
+   1. Each column will be measured.
+   2. If an image from the shortest and tallest columns can be swapped to get closer to the average height, do so and repeat these steps.
+   3. Otherwise, move on to the next step.
 5. Randomize order of images within a column.
 6. Avoid top/bottom edges of images from lining up with neighboring columns:
-  1. Move shortest image to top and tallest image to bottom in odd columns.
-  2. Move tallest image to top and shortest image to bottom in even columns.
+   1. Move shortest image to top and tallest image to bottom in odd columns.
+   2. Move tallest image to top and shortest image to bottom in even columns.
 7. Resize all images from their full size to fit in a column.
 8. Calculate the extra height in each column
 9. Split that extra height among images in each column and crop the top/bottom of each image.
