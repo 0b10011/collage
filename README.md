@@ -13,7 +13,7 @@ use std::path::Path;
 let mut files: Vec<Box<Path>> = vec![];
 // Add files to vector here
 
-let collage: CollageResult = collaged::generate(CollageOptions {
+let collage: CollageResult = collage::generate(CollageOptions {
     width: 500,
     height: 500,
     files: files,
