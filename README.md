@@ -26,7 +26,7 @@ let collage: CollageResult = collage::generate(CollageOptions {
 
 ```text
 USAGE:
-    collage [FLAGS] --height <height> --width <width>
+    collage [FLAGS] [OPTIONS] --height <height> --width <width>
 
 FLAGS:
         --help              Prints help information
@@ -38,8 +38,9 @@ FLAGS:
     -v, --verbose           Shows more detail. -v shows more detail, -vv shows most detail.
 
 OPTIONS:
-    -h, --height <height>    Sets the final height of the collage.
-    -w, --width <width>      Sets the final width of the collage.
+    -h, --height <height>      Sets the final height of the collage.
+    -w, --width <width>        Sets the final width of the collage.
+        --workers <workers>    Number of workers for image processing. Defaults to number of CPUs.
 ```
 
 ## How it works
