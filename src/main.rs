@@ -347,28 +347,23 @@ fn create_collage(mut collage_info: CollageInfo) {
 
     info!("Resizing images and copying to collage...");
     let progress = ProgressBar::new(image_count);
-    loop {
-        match receiver.recv() {
-            Ok(raw_image) => {
-                progress.set_draw_target(ProgressDrawTarget::hidden());
-                eprint!("{}", EraseLines(2));
-                debug!("Placing image at {}x{}", raw_image.x, raw_image.y);
-                progress.set_draw_target(ProgressDrawTarget::stderr());
+    while let Ok(raw_image) = receiver.recv() {
+        progress.set_draw_target(ProgressDrawTarget::hidden());
+        eprint!("{}", EraseLines(2));
+        debug!("Placing image at {}x{}", raw_image.x, raw_image.y);
+        progress.set_draw_target(ProgressDrawTarget::stderr());
 
-                for pixel in raw_image.image.to_rgb().enumerate_pixels() {
-                    if raw_image.x + pixel.0 >= collage.width() {
-                        continue;
-                    }
-                    if raw_image.y + pixel.1 >= collage.height() {
-                        continue;
-                    }
-
-                    collage.put_pixel(raw_image.x + pixel.0, raw_image.y + pixel.1, *pixel.2);
-                }
-                progress.inc(1);
+        for pixel in raw_image.image.to_rgb().enumerate_pixels() {
+            if raw_image.x + pixel.0 >= collage.width() {
+                continue;
             }
-            Err(_) => break,
+            if raw_image.y + pixel.1 >= collage.height() {
+                continue;
+            }
+
+            collage.put_pixel(raw_image.x + pixel.0, raw_image.y + pixel.1, *pixel.2);
         }
+        progress.inc(1);
     }
     progress.finish_and_clear();
 
