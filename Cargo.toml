@@ -1,0 +1,19 @@
+[package]
+name = "collage"
+version = "0.1.0"
+authors = ["Brandon Frohs <brandon@19.codes>"]
+edition = "2018"
+
+[dependencies]
+ansi-escapes = "*"
+clap = "*"
+env_logger = "*"
+exitcode = "*"
+heapsize = "*"
+image = "*"
+log = "*"
+num_cpus = "*"
+threadpool = "*"
+colored = "*"
+indicatif = "*"
+num-format = "*"
