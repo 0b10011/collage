@@ -5,6 +5,8 @@
 
 // #![deny(missing_docs)] // passes now
 
+extern crate rand;
+
 use ansi_escapes::EraseLines;
 use colored::*;
 use image::{DynamicImage, FilterType, GenericImageView, ImageBuffer, ImageResult, Rgb};
@@ -19,6 +21,8 @@ use std::process;
 use std::sync::mpsc;
 use std::u64;
 use std::vec::Vec;
+use rand::thread_rng;
+use rand::seq::SliceRandom;
 use threadpool::ThreadPool;
 
 use std::error;
@@ -182,9 +186,12 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
     let mut total_height = 0_u64;
     let mut shortest_column = u64::MAX;
     let mut tallest_column = 1_u64;
+    let mut rng = thread_rng();
     for column in &mut collage_info.columns {
         // Decrement the remaining number of columns.
         remaining_count_x -= 1;
+
+        column.images.shuffle(&mut rng);
 
         // Track the offset of this column,
         // in relation to the previous column's right edge.

@@ -17,6 +17,7 @@ threadpool = "*"
 colored = "*"
 indicatif = "*"
 num-format = "*"
+rand = ">=0.6"
 
 [features]
 external_doc = []
