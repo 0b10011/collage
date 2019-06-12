@@ -66,6 +66,8 @@ struct ImageInfo {
     new_height: u32,
     crop_top: u32,
     crop_bottom: u32,
+    crop_left: u32,
+    crop_right: u32,
     path: Box<Path>,
 }
 
@@ -208,6 +210,12 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
 
         x += offset_x as u32;
 
+        // Crop from left and right of cover
+        let remove_x: i32 =
+            0 - (remaining_offset_x as f64 / remaining_count_x as f64).round() as i32;
+        let crop_left = remove_x.abs() as u32 / 2;
+        let crop_right = remove_x.abs() as u32 - crop_left;
+
         // Track how much we have to move the last cover up
         // in order for it to appear aligned against the bottom edge.
         // We'll then distribute this amount between all of the covers,
@@ -233,11 +241,13 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
 
             image_count += 1;
 
-            // Crop from top and bottom of cover
+            // Crop cover based on amount needed to offset
             let remove_y: i32 =
                 0 - (remaining_offset_y as f64 / remaining_count_y as f64).round() as i32;
             cover.crop_top = remove_y.abs() as u32 / 2;
             cover.crop_bottom = remove_y.abs() as u32 - cover.crop_top;
+            cover.crop_left = crop_left;
+            cover.crop_right = crop_right;
 
             // Adjust remaining y offset
             remaining_offset_y += remove_y;
@@ -308,9 +318,9 @@ fn get_resized_and_cropped_image(cover: ImageInfo) -> DynamicImage {
         Ok(image) => image
             .resize_exact(cover.new_width, cover.new_height, FilterType::Triangle)
             .crop(
-                0,
+                cover.crop_left,
                 cover.crop_top,
-                cover.new_width,
+                cover.new_width - cover.crop_left - cover.crop_right,
                 cover.new_height - cover.crop_top - cover.crop_bottom,
             ),
         Err(err) => {
@@ -579,6 +589,8 @@ where
                             new_height: height,
                             crop_top: 0,
                             crop_bottom: 0,
+                            crop_left: 0,
+                            crop_right: 0,
                             path: path,
                         }))
                         .unwrap();
