@@ -598,30 +598,27 @@ where
 
     let bar = ProgressBar::new(file_count as u64);
     let mut exit_code = 0;
-    loop {
-        match receiver.recv() {
-            Ok(result) => match result {
-                Ok(image_info) => {
-                    bar.set_draw_target(ProgressDrawTarget::hidden());
-                    eprint!("{}", EraseLines(2));
-                    debug!("Valid file: {}", image_info.path.to_string_lossy());
-                    bar.set_draw_target(ProgressDrawTarget::stderr());
+    while let Ok(result) = receiver.recv() {
+        match result {
+            Ok(image_info) => {
+                bar.set_draw_target(ProgressDrawTarget::hidden());
+                eprint!("{}", EraseLines(2));
+                debug!("Valid file: {}", image_info.path.to_string_lossy());
+                bar.set_draw_target(ProgressDrawTarget::stderr());
 
-                    succeeded_count += 1;
-                    sizes.push(image_info);
-                    bar.inc(1);
-                }
-                Err(err) => {
-                    bar.set_draw_target(ProgressDrawTarget::hidden());
-                    eprint!("{}", EraseLines(2));
-                    bad_file_error!(skip_bad_files, "Invalid file: {}", err);
-                    bar.set_draw_target(ProgressDrawTarget::stderr());
+                succeeded_count += 1;
+                sizes.push(image_info);
+                bar.inc(1);
+            }
+            Err(err) => {
+                bar.set_draw_target(ProgressDrawTarget::hidden());
+                eprint!("{}", EraseLines(2));
+                bad_file_error!(skip_bad_files, "Invalid file: {}", err);
+                bar.set_draw_target(ProgressDrawTarget::stderr());
 
-                    exit_code = exitcode::DATAERR;
-                    bar.inc(1);
-                }
-            },
-            Err(_) => break,
+                exit_code = exitcode::DATAERR;
+                bar.inc(1);
+            }
         }
     }
     bar.finish_and_clear();
