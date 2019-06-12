@@ -569,17 +569,20 @@ where
         let sender = mpsc::Sender::clone(&sender_base);
         pool.execute(move || {
             match get_image(&path) {
-                Ok(image) => sender
-                    .send(Ok(ImageInfo {
-                        old_width: image.width(),
-                        old_height: image.height(),
-                        new_width: image.width(),
-                        new_height: image.height(),
-                        crop_top: 0,
-                        crop_bottom: 0,
-                        path: path,
-                    }))
-                    .unwrap(),
+                Ok(image) => {
+                    let (width, height) = image.dimensions();
+                    sender
+                        .send(Ok(ImageInfo {
+                            old_width: width,
+                            old_height: height,
+                            new_width: width,
+                            new_height: height,
+                            crop_top: 0,
+                            crop_bottom: 0,
+                            path: path,
+                        }))
+                        .unwrap();
+                }
                 Err(err) => sender
                     .send(Err(format!(
                         "'{}' could not be added to the collage: {}",
