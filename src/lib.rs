@@ -13,6 +13,8 @@ use image::{DynamicImage, FilterType, GenericImageView, ImageBuffer, ImageResult
 use indicatif::{ProgressBar, ProgressDrawTarget};
 use log::{debug, error, info, log, Level};
 use num_format::{Locale, ToFormattedString};
+use rand::seq::SliceRandom;
+use rand::thread_rng;
 use std::cmp::{max, min};
 use std::fs::File;
 use std::io::Read;
@@ -21,8 +23,6 @@ use std::process;
 use std::sync::mpsc;
 use std::u64;
 use std::vec::Vec;
-use rand::thread_rng;
-use rand::seq::SliceRandom;
 use threadpool::ThreadPool;
 
 use std::error;
