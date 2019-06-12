@@ -176,7 +176,7 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
         ((collage_info.column_width * remaining_count_x) - collage_info.width) as i32;
 
     // The first column's offset should be 0.
-    let mut x = 0;
+    let mut x = 0_u32;
 
     let pool = ThreadPool::new(collage_info.workers);
     let (sender_base, receiver) = mpsc::channel();
@@ -195,26 +195,12 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
 
         column.images.shuffle(&mut rng);
 
-        // Track the offset of this column,
-        // in relation to the previous column's right edge.
-        let offset_x: i32 = if remaining_count_x == collage_info.column_count {
-            0
-        } else {
-            collage_info.column_width as i32
-                - (remaining_offset_x as f64 / remaining_count_x as f64).ceil() as i32
-        };
-
-        if offset_x != 0 {
-            remaining_offset_x += offset_x - collage_info.column_width as i32;
-        }
-
-        x += offset_x as u32;
-
         // Crop from left and right of cover
         let remove_x: i32 =
             0 - (remaining_offset_x as f64 / remaining_count_x as f64).round() as i32;
         let crop_left = remove_x.abs() as u32 / 2;
         let crop_right = remove_x.abs() as u32 - crop_left;
+        remaining_offset_x += remove_x;
 
         // Track how much we have to move the last cover up
         // in order for it to appear aligned against the bottom edge.
@@ -269,6 +255,9 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
             // Set the starting y position for the next image
             y += adjusted_cover_height;
         }
+
+        // Set offset for next column
+        x += collage_info.column_width + remove_x as u32;
     }
     drop(sender_base);
 
