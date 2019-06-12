@@ -279,6 +279,7 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
 
     info!("Resizing images and copying to collage...");
     let progress = ProgressBar::new(image_count);
+    let (collage_width, collage_height) = collage.dimensions();
     while let Ok(raw_image) = receiver.recv() {
         progress.set_draw_target(ProgressDrawTarget::hidden());
         eprint!("{}", EraseLines(2));
@@ -286,10 +287,10 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
         progress.set_draw_target(ProgressDrawTarget::stderr());
 
         for pixel in raw_image.image.to_rgb().enumerate_pixels() {
-            if raw_image.x + pixel.0 >= collage.width() {
+            if raw_image.x + pixel.0 >= collage_width {
                 continue;
             }
-            if raw_image.y + pixel.1 >= collage.height() {
+            if raw_image.y + pixel.1 >= collage_height {
                 continue;
             }
 
