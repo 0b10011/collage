@@ -420,14 +420,12 @@ fn balance_columns(collage_info: &mut CollageInfo) -> bool {
         let short_column = collage_info.columns.first().unwrap();
         let tall_column = collage_info.columns.last().unwrap();
 
-        let difference_from_average = min(
-            (tall_column.height as f64 - collage_info.column_height_average)
-                .abs()
-                .floor() as u32,
-            (collage_info.column_height_average - short_column.height as f64)
-                .abs()
-                .floor() as u32,
-        );
+        let difference_tall = (tall_column.height as f64 - collage_info.column_height_average)
+            .abs()
+            .floor() as u32;
+        let difference_short = (collage_info.column_height_average - short_column.height as f64)
+            .abs()
+            .floor() as u32;
 
         let mut swap: [usize; 2] = [0, 0];
         for (tall_key, tall_image) in tall_column.images.iter().enumerate() {
@@ -439,9 +437,8 @@ fn balance_columns(collage_info: &mut CollageInfo) -> bool {
                 // closest to the average height
                 // and the average height,
                 // skip to the next cover.
-                if tall_image.new_height <= short_image.new_height
-                    || tall_image.new_height - short_image.new_height >= difference_from_average
-                {
+                let difference_images = tall_image.new_height - short_image.new_height;
+                if difference_tall >= difference_images || difference_short >= difference_images {
                     continue;
                 }
 
