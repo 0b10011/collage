@@ -270,7 +270,6 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
                             / 100.)
                             .round() as u32,
                     );
-                    cover.new_height = 5;
                 }
             } else {
                 if remove_y != 0 {
