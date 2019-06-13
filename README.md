@@ -40,7 +40,7 @@ FLAGS:
 
 OPTIONS:
     -h, --height <height>                    Sets the final height of the collage.
-        --max_distortion <max_distortion>    Max distortion of height or width. If 0, images will be cropped to fit.
+        --max-distortion <max-distortion>    Max distortion of height or width. If 0, images will be cropped to fit.
                                              Otherwise, after scaling proportionally to fit, the long dimension will be
                                              resized up to N% from it's proportional value.
     -w, --width <width>                      Sets the final width of the collage.

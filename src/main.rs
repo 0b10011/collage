@@ -38,8 +38,8 @@ fn main() {
                 .takes_value(true),
         )
         .arg(
-            Arg::with_name("max_distortion")
-                .long("max_distortion")
+            Arg::with_name("max-distortion")
+                .long("max-distortion")
                 .help("Max distortion of height or width. If 0, images will be cropped to fit. Otherwise, after scaling proportionally to fit, the long dimension will be resized up to N% from it's proportional value.")
                 .takes_value(true),
         )
@@ -111,7 +111,7 @@ fn main() {
         files: files,
         skip_bad_files: options.is_present("skip-bad-files"),
         workers: value_t!(options.value_of("workers"), usize).unwrap_or(num_cpus::get()),
-        max_distortion: value_t!(options.value_of("max_distortion"), f32).unwrap_or(3.),
+        max_distortion: value_t!(options.value_of("max-distortion"), f32).unwrap_or(3.),
     });
 
     collage
