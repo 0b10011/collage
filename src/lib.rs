@@ -209,24 +209,22 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
         let mut remaining_offset_y: i32 = column.height as i32 - collage_info.height as i32;
         removed_height += remaining_offset_y as u64;
 
-        // Track how many covers are left in the column,
-        // so we can distribute the offset between them.
-        let mut remaining_count_y = column.images.iter().count();
+        // Track how much height is left in the column,
+        // so we can distribute the offset between the covers accordingly.
+        let mut remaining_height = column.height;
 
         // The first cover's offset should be 0.
         let mut y = 0;
 
         // Loop through covers in this column and place each one.
-        remaining_count_y += 1; // Increment so we can decrement first
         while let Some(mut cover) = column.images.pop() {
-            // Decrement cover count
-            remaining_count_y -= 1;
-
             image_count += 1;
 
             // Crop cover based on amount needed to offset
+            // proportional to the height of the image compared to the column.
             let remove_y: i32 =
-                0 - (remaining_offset_y as f64 / remaining_count_y as f64).round() as i32;
+                0 - (cover.new_height as f64 / remaining_height as f64 * remaining_offset_y as f64).round() as i32;
+            remaining_height -= cover.new_height;
             cover.crop_top = remove_y.abs() as u32 / 2;
             cover.crop_bottom = remove_y.abs() as u32 - cover.crop_top;
             cover.crop_left = crop_left;
