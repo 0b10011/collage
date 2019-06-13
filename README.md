@@ -19,6 +19,7 @@ let collage: CollageResult = collage::generate(CollageOptions {
     files: files,
     skip_bad_files: false,
     workers: num_cpus::get(),
+    max_distortion: 3.0,
 });
 ```
 
@@ -38,9 +39,12 @@ FLAGS:
     -v, --verbose           Shows more detail. -v shows more detail, -vv shows most detail.
 
 OPTIONS:
-    -h, --height <height>      Sets the final height of the collage.
-    -w, --width <width>        Sets the final width of the collage.
-        --workers <workers>    Number of workers for image processing. Defaults to number of CPUs.
+    -h, --height <height>                    Sets the final height of the collage.
+        --max_distortion <max_distortion>    Max distortion of height or width. If 0, images will be cropped to fit.
+                                             Otherwise, after scaling proportionally to fit, the long dimension will be
+                                             resized up to N% from it's proportional value.
+    -w, --width <width>                      Sets the final width of the collage.
+        --workers <workers>                  Number of workers for image processing. Defaults to number of CPUs.
 ```
 
 ## How it works
@@ -58,5 +62,7 @@ OPTIONS:
    2. Move tallest image to top and shortest image to bottom in even columns.
 7. Resize all images from their full size to fit in a column.
 8. Calculate the extra height in each column
-9. Split that extra height among images in each column and crop the top/bottom of each image.
+9. Split that extra height among images proportionally in each column, and for each image:
+   1. Shorten up to `max_distortion` (eg, if an image is 100px tall and `max_distortion` is set to `5`, the final image would be no shorter than 95px).
+   2. Crop the remaining amount from the top/bottom.
 10. Place images in collage based on column and position within column.

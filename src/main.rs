@@ -1,11 +1,11 @@
 use clap::{crate_version, value_t, App, Arg};
 use collage::{generate, CollageOptions};
-use log::{info, LevelFilter};
+use log::{error, info, LevelFilter};
 use num_format::{Locale, ToFormattedString};
 use std::path::Path;
 use std::time::Instant;
 use std::vec::Vec;
-use std::{env, fs, u64};
+use std::{env, fs, process, u64};
 
 fn main() {
     let now = Instant::now();
@@ -35,6 +35,12 @@ fn main() {
             Arg::with_name("workers")
                 .long("workers")
                 .help("Number of workers for image processing. Defaults to number of CPUs.")
+                .takes_value(true),
+        )
+        .arg(
+            Arg::with_name("max_distortion")
+                .long("max_distortion")
+                .help("Max distortion of height or width. If 0, images will be cropped to fit. Otherwise, after scaling proportionally to fit, the long dimension will be resized up to N% from it's proportional value.")
                 .takes_value(true),
         )
         // Ignore bad files
@@ -105,9 +111,16 @@ fn main() {
         files: files,
         skip_bad_files: options.is_present("skip-bad-files"),
         workers: value_t!(options.value_of("workers"), usize).unwrap_or(num_cpus::get()),
+        max_distortion: value_t!(options.value_of("max_distortion"), f32).unwrap_or(3.),
     });
 
-    collage.unwrap().save("collage.png").unwrap();
+    collage
+        .unwrap_or_else(|err| {
+            error!("{}", err);
+            process::exit(exitcode::IOERR);
+        })
+        .save("collage.png")
+        .unwrap();
 
     info!("Saved to 'collage.png'.");
 

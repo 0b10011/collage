@@ -79,6 +79,7 @@ struct CollageInfo {
     column_height_average: f64,
     columns: Vec<Column>,
     workers: usize,
+    max_distortion: f32,
 }
 
 struct Column {
@@ -95,17 +96,33 @@ where
     pub files: T,
     pub skip_bad_files: bool,
     pub workers: usize,
+    pub max_distortion: f32,
 }
 
 pub fn generate<I>(options: CollageOptions<I>) -> CollageResult
 where
     I: IntoIterator<Item = Box<Path>>,
 {
+    if options.max_distortion > 100. {
+        return Err(CollageError);
+    } else if options.max_distortion < 0. {
+        return Err(CollageError);
+    }
+
     let mut images: Vec<ImageInfo> =
         match get_images(options.files, options.skip_bad_files, options.workers) {
             Ok(images) => images,
             Err(err) => return Err(err),
         };
+
+    info!(
+        "Generating a {}x{} collage from {} images with {}% maximum distortion using {} workers.",
+        options.width,
+        options.height,
+        images.len(),
+        options.max_distortion,
+        options.workers
+    );
 
     normalize_images(&mut images);
 
@@ -117,6 +134,7 @@ where
         column_height_average: 0.,
         columns: vec![],
         workers: options.workers,
+        max_distortion: options.max_distortion,
     };
 
     add_columns(&mut collage_info, &mut images);
@@ -207,7 +225,6 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
         // We'll then distribute this amount between all of the covers,
         // so no one cover is drastically cropped off the edge.
         let mut remaining_offset_y: i32 = column.height as i32 - collage_info.height as i32;
-        removed_height += remaining_offset_y as u64;
 
         // Track how much height is left in the column,
         // so we can distribute the offset between the covers accordingly.
@@ -222,8 +239,9 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
 
             // Crop cover based on amount needed to offset
             // proportional to the height of the image compared to the column.
-            let remove_y: i32 =
-                0 - (cover.new_height as f64 / remaining_height as f64 * remaining_offset_y as f64).round() as i32;
+            let remove_y: i32 = 0
+                - (cover.new_height as f64 / remaining_height as f64 * remaining_offset_y as f64)
+                    .round() as i32;
             remaining_height -= cover.new_height;
             cover.crop_top = remove_y.abs() as u32 / 2;
             cover.crop_bottom = remove_y.abs() as u32 - cover.crop_top;
@@ -232,15 +250,43 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
 
             let cropped_width = (cover.new_width as i32 + remove_x) as u32;
             let cropped_height = (cover.new_height as i32 + remove_y) as u32;
-            let resize_by_width = (cover.new_height as f64 / cover.new_width as f64 * cropped_width as f64).round() as u32 >= cropped_height as u32;
+            let resize_by_width = (cover.new_height as f64 / cover.new_width as f64
+                * cropped_width as f64)
+                .round() as u32
+                >= cropped_height as u32;
             let old_width = cover.new_width;
             let old_height = cover.new_height;
-            if resize_by_width && remove_x != 0 {
-                cover.new_height = (cover.new_height as f64 / cover.new_width as f64 * cropped_width as f64).round() as u32;
-                cover.new_width = cropped_width as u32;
-            } else if !resize_by_width && remove_y != 0 {
-                cover.new_width = (cover.new_width as f64 / cover.new_height as f64 * cropped_height as f64).round() as u32;
-                cover.new_height = cropped_height as u32;
+            if resize_by_width {
+                if remove_x != 0 {
+                    cover.new_height = (cover.new_height as f64 / cover.new_width as f64
+                        * cropped_width as f64)
+                        .round() as u32;
+                    cover.new_width = cropped_width as u32;
+                }
+
+                if cover.new_height != cropped_height {
+                    cover.new_height = cropped_height.max(
+                        (cover.new_height as f64 * (100.0 - collage_info.max_distortion as f64)
+                            / 100.)
+                            .round() as u32,
+                    );
+                    cover.new_height = 5;
+                }
+            } else {
+                if remove_y != 0 {
+                    cover.new_width = (cover.new_width as f64 / cover.new_height as f64
+                        * cropped_height as f64)
+                        .round() as u32;
+                    cover.new_height = cropped_height as u32;
+                }
+
+                if cover.new_width != cropped_width {
+                    cover.new_width = cropped_width.max(
+                        (cover.new_width as f64 * (100.0 - collage_info.max_distortion as f64)
+                            / 100.)
+                            .round() as u32,
+                    );
+                }
             }
 
             let adjustment_height = old_height - cover.new_height;
@@ -248,11 +294,12 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
             cover.crop_top -= adjustment_top;
             cover.crop_bottom -= adjustment_height - adjustment_top;
 
+            removed_height += adjustment_height as u64;
+
             let adjustment_width = old_width - cover.new_width;
             let adjustment_left = adjustment_width / 2;
             cover.crop_left -= adjustment_left;
             cover.crop_right -= adjustment_width - adjustment_left;
-
 
             // Adjust remaining y offset
             remaining_offset_y += remove_y;
