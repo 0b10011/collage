@@ -3,7 +3,7 @@
 #![cfg_attr(feature = "external_doc", doc(include = "../README.md"))]
 //!
 
-// #![deny(missing_docs)] // passes now
+#![deny(missing_docs)]
 
 extern crate rand;
 
@@ -29,6 +29,7 @@ use std::error;
 use std::fmt;
 use std::result;
 
+/// All errors returned will be of this type
 #[derive(Debug, Clone)]
 pub struct CollageError;
 
@@ -45,6 +46,7 @@ impl error::Error for CollageError {
     }
 }
 
+/// A result containing either an `ImageBuffer` or `CollageError`.
 pub type CollageResult = result::Result<ImageBuffer<Rgb<u8>, Vec<u8>>, CollageError>;
 
 type Result<T> = result::Result<T, CollageError>;
@@ -87,18 +89,30 @@ struct Column {
     images: Vec<ImageInfo>,
 }
 
+/// Configuration for the collage.
 pub struct CollageOptions<T>
 where
     T: IntoIterator<Item = Box<Path>>,
 {
+    /// Width of the final collage in pixels.
     pub width: u32,
+    /// Height of the final collage in pixels.
     pub height: u32,
+    /// The image files to process and compile into a collage.
     pub files: T,
+    /// Flag to skip invalid files instead of returning an error.
     pub skip_bad_files: bool,
+    /// Number of workers for image processing.
     pub workers: usize,
+    /// Max distortion of image height.
+    ///
+    /// If 0, images will be cropped to fit.
+    /// Otherwise, after scaling proportionally to fit,
+    /// the long dimension will be resized up to N% from it's proportional value.
     pub max_distortion: f32,
 }
 
+/// Generates the collage.
 pub fn generate<I>(options: CollageOptions<I>) -> CollageResult
 where
     I: IntoIterator<Item = Box<Path>>,
