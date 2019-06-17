@@ -9,9 +9,9 @@ extern crate rand;
 
 use ansi_escapes::EraseLines;
 use colored::*;
-use image::{DynamicImage, FilterType, GenericImageView, ImageBuffer, ImageResult, Rgb};
+use image::{DynamicImage, FilterType, GenericImageView, ImageBuffer, ImageError, Rgb};
 use indicatif::{ProgressBar, ProgressDrawTarget};
-use log::{debug, error, info, log, Level};
+use log::{debug, info, log, Level};
 use num_format::{Locale, ToFormattedString};
 use rand::seq::SliceRandom;
 use rand::thread_rng;
@@ -25,25 +25,64 @@ use std::u64;
 use std::vec::Vec;
 use threadpool::ThreadPool;
 
-use std::error;
+use std::error::Error;
 use std::fmt;
 use std::result;
 
 /// All errors returned will be of this type
-#[derive(Debug, Clone)]
-pub struct CollageError;
+#[derive(Debug)]
+pub enum CollageError {
+    ///
+    InternalError {
+        ///
+        description: String,
+    },
+    ///
+    ExternalError {
+        ///
+        description: String,
+        ///
+        source: ImageError,
+    },
+    ///
+    IoError {
+        ///
+        description: String,
+        ///
+        source: std::io::Error,
+    },
+}
 
 impl fmt::Display for CollageError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Could not generate collage")
+        write!(f, "{}", "foo")
     }
 }
 
-impl error::Error for CollageError {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        // Generic error, underlying cause isn't tracked.
-        None
+impl From<std::io::Error> for CollageError {
+    fn from(err: std::io::Error) -> CollageError {
+        CollageError::IoError {
+            description: err.to_string(),
+            source: err,
+        }
     }
+}
+
+impl From<ImageError> for CollageError {
+    fn from(err: ImageError) -> CollageError {
+        CollageError::ExternalError {
+            description: err.to_string(),
+            source: err,
+        }
+    }
+}
+
+impl Error for CollageError {
+    // fn source(&self) -> Option<&(dyn Error + 'static)> {
+    //     self.source.map(|err| {
+    //         &err
+    //     })
+    // }
 }
 
 /// A result containing either an `ImageBuffer` or `CollageError`.
@@ -56,7 +95,7 @@ macro_rules! bad_file_error {
 }
 
 struct RawImage {
-    image: DynamicImage,
+    image: Result<DynamicImage>,
     x: u32,
     y: u32,
 }
@@ -118,9 +157,13 @@ where
     I: IntoIterator<Item = Box<Path>>,
 {
     if options.max_distortion > 100. {
-        return Err(CollageError);
+        return Err(CollageError::InternalError {
+            description: format!("`max_distortion` cannot be greater than `100`. `{}` provided.", options.max_distortion),
+        });
     } else if options.max_distortion < 0. {
-        return Err(CollageError);
+        return Err(CollageError::InternalError {
+            description: format!("`max_distortion` cannot be less than `0`. `{}` provided.", options.max_distortion),
+        });
     }
 
     let mut images: Vec<ImageInfo> =
@@ -370,7 +413,7 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
         debug!("Placing image at {}x{}", raw_image.x, raw_image.y);
         progress.set_draw_target(ProgressDrawTarget::stderr());
 
-        for pixel in raw_image.image.to_rgb().enumerate_pixels() {
+        for pixel in raw_image.image?.to_rgb().enumerate_pixels() {
             if raw_image.x + pixel.0 >= collage_width {
                 continue;
             }
@@ -387,21 +430,17 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
     Ok(collage)
 }
 
-fn get_resized_and_cropped_image(cover: ImageInfo) -> DynamicImage {
-    match get_image(&cover.path) {
-        Ok(image) => image
+fn get_resized_and_cropped_image(cover: ImageInfo) -> Result<DynamicImage> {
+    get_image(&cover.path).map(|image| {
+        Ok(image
             .resize_exact(cover.new_width, cover.new_height, FilterType::Triangle)
             .crop(
                 cover.crop_left,
                 cover.crop_top,
                 cover.new_width - cover.crop_left - cover.crop_right,
                 cover.new_height - cover.crop_top - cover.crop_bottom,
-            ),
-        Err(err) => {
-            error!("{}", err);
-            process::exit(exitcode::IOERR);
-        }
-    }
+            ))
+    })?
 }
 
 fn balance_columns(collage_info: &mut CollageInfo) -> bool {
@@ -707,7 +746,9 @@ where
     bar.finish_and_clear();
 
     if file_count == 0 {
-        return Err(CollageError);
+        return Err(CollageError::InternalError {
+            description: "No files provided".to_string(),
+        });
     }
     let failed_count = file_count - succeeded_count;
     if failed_count == 0 {
@@ -741,10 +782,9 @@ where
     Ok(sizes)
 }
 
-fn get_image(path: &Path) -> ImageResult<DynamicImage> {
+fn get_image(path: &Path) -> Result<DynamicImage> {
     let mut buffer = Vec::new();
-    let mut file = File::open(path).expect("File could not be opened");
-    file.read_to_end(&mut buffer)
-        .expect("File could not be read");
-    image::load_from_memory(&buffer)
+    let mut file = File::open(path)?;
+    file.read_to_end(&mut buffer)?;
+    Ok(image::load_from_memory(&buffer)?)
 }
