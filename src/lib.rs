@@ -38,24 +38,36 @@ pub enum CollageError {
         description: String,
     },
     ///
-    ExternalError {
+    ImageError {
         ///
         description: String,
         ///
-        source: ImageError,
+        source_error: ImageError,
     },
     ///
     IoError {
         ///
         description: String,
         ///
-        source: std::io::Error,
+        source_error: std::io::Error,
     },
 }
 
 impl fmt::Display for CollageError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", "foo")
+        match self {
+            CollageError::InternalError {
+                description
+            } => write!(f, "{}", description),
+            CollageError::ImageError {
+                description,
+                source_error: _
+            } => write!(f, "{}", description),
+            CollageError::IoError {
+                description,
+                source_error: _
+            } => write!(f, "{}", description),
+        }
     }
 }
 
@@ -63,26 +75,36 @@ impl From<std::io::Error> for CollageError {
     fn from(err: std::io::Error) -> CollageError {
         CollageError::IoError {
             description: err.to_string(),
-            source: err,
+            source_error: err,
         }
     }
 }
 
 impl From<ImageError> for CollageError {
     fn from(err: ImageError) -> CollageError {
-        CollageError::ExternalError {
+        CollageError::ImageError {
             description: err.to_string(),
-            source: err,
+            source_error: err,
         }
     }
 }
 
 impl Error for CollageError {
-    // fn source(&self) -> Option<&(dyn Error + 'static)> {
-    //     self.source.map(|err| {
-    //         &err
-    //     })
-    // }
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        match self {
+            CollageError::InternalError {
+                description: _
+            } => None,
+            CollageError::ImageError {
+                description: _,
+                source_error
+            } => Some(source_error),
+            CollageError::IoError {
+                description: _,
+                source_error
+            } => Some(source_error),
+        }
+    }
 }
 
 /// A result containing either an `ImageBuffer` or `CollageError`.
@@ -747,7 +769,7 @@ where
 
     if file_count == 0 {
         return Err(CollageError::InternalError {
-            description: "No files provided".to_string(),
+            description: "No files provided.".to_string(),
         });
     }
     let failed_count = file_count - succeeded_count;
