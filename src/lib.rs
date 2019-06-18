@@ -56,16 +56,14 @@ pub enum CollageError {
 impl fmt::Display for CollageError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            CollageError::InternalError {
-                description
-            } => write!(f, "{}", description),
+            CollageError::InternalError { description } => write!(f, "{}", description),
             CollageError::ImageError {
                 description,
-                source_error: _
+                source_error: _,
             } => write!(f, "{}", description),
             CollageError::IoError {
                 description,
-                source_error: _
+                source_error: _,
             } => write!(f, "{}", description),
         }
     }
@@ -92,16 +90,14 @@ impl From<ImageError> for CollageError {
 impl Error for CollageError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
-            CollageError::InternalError {
-                description: _
-            } => None,
+            CollageError::InternalError { description: _ } => None,
             CollageError::ImageError {
                 description: _,
-                source_error
+                source_error,
             } => Some(source_error),
             CollageError::IoError {
                 description: _,
-                source_error
+                source_error,
             } => Some(source_error),
         }
     }
@@ -180,11 +176,17 @@ where
 {
     if options.max_distortion > 100. {
         return Err(CollageError::InternalError {
-            description: format!("`max_distortion` cannot be greater than `100`. `{}` provided.", options.max_distortion),
+            description: format!(
+                "`max_distortion` cannot be greater than `100`. `{}` provided.",
+                options.max_distortion
+            ),
         });
     } else if options.max_distortion < 0. {
         return Err(CollageError::InternalError {
-            description: format!("`max_distortion` cannot be less than `0`. `{}` provided.", options.max_distortion),
+            description: format!(
+                "`max_distortion` cannot be less than `0`. `{}` provided.",
+                options.max_distortion
+            ),
         });
     }
 
