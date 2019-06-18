@@ -85,13 +85,13 @@ fn main() {
     } else {
         match options.occurrences_of("verbose") {
             0 => match options.occurrences_of("quiet") {
-                3...u64::MAX => LevelFilter::Off,
+                3..=u64::MAX => LevelFilter::Off,
                 2 => LevelFilter::Error,
                 1 => LevelFilter::Warn,
                 0 => LevelFilter::Info, // Default
             },
             1 => LevelFilter::Debug,
-            2...u64::MAX => LevelFilter::Trace,
+            2..=u64::MAX => LevelFilter::Trace,
         }
     };
 
