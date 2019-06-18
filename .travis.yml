@@ -1,6 +1,7 @@
 language: rust
 before_script:
 - rustup component add rustfmt
+cache: cargo
 matrix:
   include:
     - rust: stable
