@@ -286,11 +286,48 @@ fn create_collage(mut collage_info: CollageInfo) -> CollageResult {
     let mut shortest_column = u64::MAX;
     let mut tallest_column = 1_u64;
     let mut rng = thread_rng();
+    let mut alternate_column = false;
     for column in &mut collage_info.columns {
         // Decrement the remaining number of columns.
         remaining_count_x -= 1;
 
         column.images.shuffle(&mut rng);
+
+        let mut short_key = 0;
+        let mut short_height = column.height;
+        let mut tall_key = 0;
+        let mut tall_height = 0;
+        for (key, image) in column.images.iter().enumerate() {
+            if image.new_height >= tall_height {
+                tall_key = key;
+                tall_height = image.new_height;
+            }
+            if image.new_height <= short_height {
+                short_key = key;
+                short_height = image.new_height;
+            }
+        }
+
+        // Move short image to first slot
+        if short_key != 0 {
+            column.images.swap(0, short_key);
+        }
+        // Move tall image to last slot
+        let tall_image = column.images.swap_remove(tall_key);
+        column.images.push(tall_image);
+        // For every other column,
+        // swap the short/tall images.
+        if alternate_column {
+            alternate_column = false;
+            // Reverse images gets the intended results,
+            // just with a bit more work.
+            // Would be nice if this just swapped first/last images.
+            column.images.reverse();
+        } else {
+            alternate_column = true;
+        }
+
+        // images.sort_unstable_by(|a, b| a.new_height.partial_cmp(&b.new_height).unwrap().reverse());
 
         // Crop from left and right of cover
         let remove_x: i32 =
