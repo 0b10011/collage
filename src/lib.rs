@@ -780,6 +780,7 @@ where
     drop(sender_base);
 
     let bar = ProgressBar::new(file_count as u64);
+    bar.tick(); // Ensure progress bar is drawn before we delete lines from console
     let mut exit_code = 0;
     while let Ok(result) = receiver.recv() {
         match result {
